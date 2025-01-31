@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindMosaic - DreamChain</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-indigo-600">MindMosaic</h1>
+            <p class="text-gray-600 mt-2">Share Your Dreams on the Blockchain</p>
+        </header>
+
+        <div class="max-w-2xl mx-auto">
+            <!-- Wallet Connection -->
+            <div class="mb-8 text-center">
+                <button id="connectWallet" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
+                    Connect Wallet
+                </button>
+                <p id="walletAddress" class="mt-2 text-gray-600"></p>
+            </div>
+
+            <!-- Dream Recording Form -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Record Your Dream</h2>
+                <textarea id="dreamContent" class="w-full h-32 p-2 border rounded-lg mb-4" placeholder="Describe your dream..."></textarea>
+                <input id="dreamTags" class="w-full p-2 border rounded-lg mb-4" placeholder="Tags (comma-separated)">
+                <button id="recordDream" class="w-full bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
+                    Record Dream
+                </button>
+            </div>
+
+            <!-- Dreams List -->
+            <div id="dreamsList" class="space-y-4">
+                <!-- Dreams will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let contract;
+        let signer;
+
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    const address = await signer.getAddress();
+                    document.getElementById('walletAddress').textContent = `Connected: ${address.substring(0,6)}...${address.substring(38)}`;
+                    
+                    // Initialize contract (you'll need to add your contract address)
+                    const contractAddress = "YOUR_CONTRACT_ADDRESS";
+                    const contractABI = []; // Add your contract ABI here
+                    contract = new ethers.Contract(contractAddress, contractABI, signer);
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        }
+
+        async function recordDream() {
+            if (!contract) return;
+            
+            const dreamContent = document.getElementById('dreamContent').value;
+            const tags = document.getElementById('dreamTags').value.split(',').map(tag => tag.trim());
+            
+            try {
+                const tx = await contract.recordDream(dreamContent, tags);
+                await tx.wait();
+                loadDreams();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function loadDreams() {
+            if (!contract) return;
+            
+            const totalDreams = await contract.getTotalDreams();
+            const dreamsList = document.getElementById('dreamsList');
+            dreamsList.innerHTML = '';
+            
+            for (let i = 1; i <= totalDreams; i++) {
+                const dream = await contract.getDream(i);
+                const dreamElement = document.createElement('div');
+                dreamElement.className = 'bg-white p-4 rounded-lg shadow';
+                dreamElement.innerHTML = `
+                    <p class="text-gray-600 text-sm">Dreamer: ${dream.dreamer.substring(0,6)}...${dream.dreamer.substring(38)}</p>
+                    <p class="mt-2">${dream.dreamContent}</p>
+                    <div class="mt-2">
+                        ${dream.tags.map(tag => `<span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2">#${tag}</span>`).join('')}
+                    </div>
+                `;
+                dreamsList.appendChild(dreamElement);
+            }
+        }
+
+        document.getElementById('connectWallet').addEventListener('click', connectWallet);
+        document.getElementById('recordDream').addEventListener('click', recordDream);
+    </script>
+</body>
+</html>
