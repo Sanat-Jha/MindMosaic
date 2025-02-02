@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindMosaic - Share Your Dreams</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.umd.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+        :root {
+            --neon-purple: #bc13fe;
+            --neon-blue: #00f3ff;
+            --dark-bg: #0a0a0a;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: white;
+            font-family: 'Space Grotesk', sans-serif;
+            background-image:
+                radial-gradient(circle at 10% 10%, rgba(188, 19, 254, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 90% 90%, rgba(0, 243, 255, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(188, 19, 254, 0.3);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .btn-neon {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-neon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .btn-neon:hover::before {
+            left: 100%;
+        }
+
+        .btn-neon:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 0 20px rgba(188, 19, 254, 0.3),
+                0 0 60px rgba(188, 19, 254, 0.1);
+        }
+
+        .dream-input {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .dream-input:focus {
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 20px rgba(188, 19, 254, 0.2);
+            outline: none;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .category-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .category-badge:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .dreams-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .left-column {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 400px;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 2rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--neon-purple) var(--dark-bg);
+        }
+
+        .left-column::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .left-column::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        .left-column::-webkit-scrollbar-thumb {
+            background: var(--neon-purple);
+            border-radius: 3px;
+        }
+
+        .right-column {
+            margin-left: 400px;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 2rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--neon-purple) var(--dark-bg);
+        }
+
+        .right-column::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .right-column::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        .right-column::-webkit-scrollbar-thumb {
+            background: var(--neon-purple);
+            border-radius: 3px;
+        }
+
+        @media (max-width: 1024px) {
+            .left-column {
+                position: relative;
+                width: 100%;
+                height: auto;
+                padding: 1rem;
+            }
+
+            .right-column {
+                margin-left: 0;
+                height: auto;
+                padding: 1rem;
+            }
+
+            body {
+                overflow: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="left-column">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold gradient-text mb-4">MindMosaic</h1>
+            <p class="text-lg text-gray-400">Share Your Dreams on the Blockchain</p>
+        </header>
+
+        <div class="space-y-8">
+            <div class="glass-card p-8 rounded-2xl text-center">
+                <button id="connectWallet" class="btn-neon px-8 py-4 rounded-xl text-white font-semibold flex items-center gap-3 mx-auto">
+                    <i data-lucide="wallet" class="w-6 h-6"></i>
+                    Connect Wallet
+                </button>
+                <p id="walletAddress" class="mt-4 text-gray-400 font-medium"></p>
+            </div>
+
+            <div class="glass-card p-8 rounded-2xl space-y-6">
+                <h2 class="text-2xl font-bold gradient-text flex items-center gap-3">
+                    <i data-lucide="pen" class="w-7 h-7"></i>
+                    Record Your Dream
+                </h2>
+                <textarea id="dreamContent" class="dream-input w-full h-48 p-4 rounded-xl mb-4 resize-none text-lg"
+                    placeholder="Describe your dream journey..."></textarea>
+                <input id="dreamTags" class="dream-input w-full p-4 rounded-xl text-lg"
+                    placeholder="Add tags (e.g., lucid, adventure, flying)">
+                <button id="recordDream"
+                    class="btn-neon w-full py-4 rounded-xl text-white font-semibold flex items-center justify-center gap-3 text-lg">
+                    <i data-lucide="send" class="w-6 h-6"></i>
+                    Share Dream
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-column">
+        <div id="dreamsList" class="space-y-8">
+            <!-- Dream categories will be populated here -->
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        let signer;
+        let walletAddress;
+
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                    const provider = new ethers.BrowserProvider(window.ethereum);
+                    signer = await provider.getSigner();
+                    walletAddress = await signer.getAddress();
+
+                    document.getElementById('walletAddress').textContent =
+                        `Connected: ${walletAddress.substring(0, 6)}...${walletAddress.substring(38)}`;
+
+                } catch (error) {
+                    console.error('Wallet connection error:', error);
+                    alert('Failed to connect wallet: ' + error.message);
+                }
+            } else {
+                alert('Please install MetaMask to use this application');
+            }
+        }
+
+        async function recordDream() {
+            try {
+                if (!walletAddress) {
+                    alert('Please connect your wallet first');
+                    return;
+                }
+
+                const dreamContent = document.getElementById('dreamContent').value;
+                const tags = document.getElementById('dreamTags').value
+                    .split(',')
+                    .map(tag => tag.trim())
+                    .filter(tag => tag);
+
+                if (!dreamContent || tags.length === 0) {
+                    alert('Please enter both dream content and at least one tag');
+                    return;
+                }
+
+                const recordButton = document.getElementById('recordDream');
+                recordButton.disabled = true;
+                recordButton.innerHTML = '<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> Recording...';
+                lucide.createIcons({ target: recordButton });
+
+                const response = await fetch('/newdream', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')  // Django CSRF token
+                    },
+                    body: JSON.stringify({
+                        dream_text: dreamContent,
+                        tags: tags,
+                        wallet_address: walletAddress
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Dream recorded successfully!');
+                    document.getElementById('dreamContent').value = '';
+                    document.getElementById('dreamTags').value = '';
+                    await fetchDreams();
+                } else {
+                    throw new Error('Failed to record dream');
+                }
+
+            } catch (error) {
+                console.error('Dream recording error:', error);
+                alert('Error recording dream: ' + error.message);
+            } finally {
+                const recordButton = document.getElementById('recordDream');
+                recordButton.disabled = false;
+                recordButton.innerHTML = '<i data-lucide="send" class="w-5 h-5"></i> Share Dream';
+                lucide.createIcons({ target: recordButton });
+            }
+        }
+
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Event listeners
+        document.getElementById('connectWallet').addEventListener('click', connectWallet);
+        document.getElementById('recordDream').addEventListener('click', recordDream);
+
+        // Check for existing connection on page load
+        async function checkExistingConnection() {
+            if (typeof window.ethereum !== 'undefined') {
+                const accounts = await ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) {
+                    await connectWallet();
+                }
+            }
+        }
+
+        checkExistingConnection();
+
+        // Listen for account changes
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', async (accounts) => {
+                if (accounts.length > 0) {
+                    await connectWallet();
+                } else {
+                    signer = null;
+                    walletAddress = null;
+                    document.getElementById('walletAddress').textContent = '';
+                    document.getElementById('dreamsList').innerHTML = '';
+                }
+            });
+        }
+        async function fetchDreams() {
+            try {
+                const response = await fetch('/get_dreams');
+                const result = await response.json();
+
+                if (result.status === 'success' && Array.isArray(result.data)) {
+                    displayDreams(result.data);
+                } else {
+                    console.error('Invalid response format or failed to fetch dreams');
+                }
+            } catch (error) {
+                console.error('Error fetching dreams:', error);
+            }
+        }
+
+        // Add this to your existing JavaScript code
+
+        function getCategoryColor(category) {
+            const colors = {
+                'nightmare': 'border-red-500',
+                'funny': 'border-yellow-400',
+                'adventure': 'border-green-500',
+                'lucid': 'border-purple-500',
+                'romantic': 'border-pink-500',
+                'flying': 'border-blue-500',
+                'positive': 'border-emerald-500',
+                'negative': 'border-orange-500',
+                'neutral': 'border-gray-500'
+            };
+            return colors[category] || 'border-white';
+        }
+
+        function displayDreams(dreams) {
+            const dreamsList = document.getElementById('dreamsList');
+            dreamsList.innerHTML = ''; // Clear existing dreams
+
+            // Create category sections
+            const categories = ['nightmare', 'funny', 'adventure', 'lucid', 'romantic', 'flying', 'positive', 'negative', 'neutral'];
+            const categoryContainers = {};
+
+            categories.forEach(category => {
+                const container = document.createElement('div');
+                container.className = `category-section mb-8 ${category}-dreams hidden`;
+                container.innerHTML = `
+                <h3 class="text-xl font-semibold gradient-text mb-4 capitalize">${category} Dreams</h3>
+                <div class="dreams-container space-y-4"></div>
+            `;
+                categoryContainers[category] = container;
+                dreamsList.appendChild(container);
+            });
+
+            // Sort dreams into categories
+            dreams.forEach(dream => {
+                const dreamElement = document.createElement('div');
+                dreamElement.className = `glass-card p-6 rounded-xl border-l-4 ${dream.categories.map(cat => getCategoryColor(cat)).join(' ')
+                    }`;
+
+                dreamElement.innerHTML = `
+                <p class="dream-text text-white mb-3">${dream.dream_text}</p>
+                <div class="flex flex-wrap gap-2 mt-2">
+                    ${dream.categories.map(category =>
+                    `<span class="px-3 py-1 rounded-full text-sm ${getCategoryColor(category)} bg-opacity-20 bg-white">
+                            ${category}
+                        </span>`
+                ).join('')}
+                </div>
+            `;
+
+                // Add dream to each of its categories
+                dream.categories.forEach(category => {
+                    const container = categoryContainers[category];
+                    if (container) {
+                        container.classList.remove('hidden');
+                        container.querySelector('.dreams-container').appendChild(dreamElement.cloneNode(true));
+                    }
+                });
+            });
+
+            // Remove empty categories
+            categories.forEach(category => {
+                const container = categoryContainers[category];
+                if (container.querySelector('.dreams-container').children.length === 0) {
+                    container.remove();
+                }
+            });
+
+            // Reinitialize Lucide icons
+            lucide.createIcons();
+        }
+
+        // Initialize everything after DOM is loaded
+        function initializeApp() {
+            // Initialize Lucide icons
+            lucide.createIcons();
+
+            // Event listeners
+            document.getElementById('connectWallet').addEventListener('click', connectWallet);
+            document.getElementById('recordDream').addEventListener('click', recordDream);
+
+            // Check for existing wallet connection
+            checkExistingConnection();
+
+            // Fetch initial dreams
+            fetchDreams();
+        }
+
+        // Wait for DOM to be fully loaded before initializing
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        // Keep wallet connection listeners outside since they don't depend on DOM elements
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', async (accounts) => {
+                if (accounts.length > 0) {
+                    await connectWallet();
+                } else {
+                    signer = null;
+                    walletAddress = null;
+                    document.getElementById('walletAddress').textContent = '';
+                    document.getElementById('dreamsList').innerHTML = '';
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', fetchDreams);
+    </script>
+</body>
+
+</html>
