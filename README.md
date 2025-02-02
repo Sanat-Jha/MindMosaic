@@ -91,7 +91,7 @@ Picture a world where:
 
 ## 🏆 Competition
 ```
-🌟  Stack Too Deep Hackathon
+🌟  Stack Too Deep v2.0 Hackathon
 
 ```
 ---
