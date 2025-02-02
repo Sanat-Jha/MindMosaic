@@ -1,10 +1,9 @@
-### crazy read me you know baby
 <div align="center">
 
 # 🌌 MIND MOSAIC 🌠
 ### Where Dreams Become Eternal
 
-![Mind Mosaic Banner](https://your-banner-image-url.com)
+<img src="https://github.com/user-attachments/assets/a207f000-7004-45ee-8150-d8aaef6dc759" alt="Mind Mosaic Logo" width="800" height="400" style="border-radius: 10px;">
 
 [![Blockchain](https://img.shields.io/badge/Blockchain-Powered-blue)](https://your-link)
 [![IPFS](https://img.shields.io/badge/IPFS-Enabled-green)](https://your-link)
@@ -24,6 +23,14 @@
 ## 🌙 Vision
 
 In the vast expanse of human consciousness, every dream is a unique constellation waiting to be discovered. Mind Mosaic transforms these ethereal experiences into permanent stellar records on the blockchain, creating an ever-expanding universe of human subconscious expression.
+
+## 🎨 Dream Interface Showcase
+
+<div align="center">
+<img src="UI.png" alt="Mind Mosaic Interface" width="800" height="450" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+
+*Experience the ethereal interface where dreams come to life*
+</div>
 
 ## ✨ Features That Make Dreams Reality
 
@@ -51,7 +58,6 @@ graph LR
 ```
 
 ## 🌈 Experience the Magic
-
 ```javascript
 // The journey is simple
 1. Connect your wallet 🔗
@@ -93,7 +99,6 @@ Every contributor adds a new star to our constellation. Whether you're a:
 Your unique perspective helps shape this cosmic tapestry.
 
 ## 🏆 Achievements
-
 ```
 🏆 Stack Too Deep Hackathon
 🌟 Web3 Innovation Award
