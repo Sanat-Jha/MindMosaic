@@ -88,32 +88,12 @@ Picture a world where:
 - 📱 Mobile Dream Journal
 - 🌐 Global Dream Analysis
 
-## 🤝 Join the Dream Weavers
 
-Every contributor adds a new star to our constellation. Whether you're a:
-- 💻 Developer
-- 🔬 Researcher
-- 🎨 Designer
-- 💭 Dreamer
-
-Your unique perspective helps shape this cosmic tapestry.
-
-## 🏆 Achievements
+## 🏆 Competition
 ```
-🏆 Stack Too Deep Hackathon
-🌟 Web3 Innovation Award
+🌟  Stack Too Deep Hackathon
+
 ```
-
-## 📞 Connect with the Dreamscape
-
-<div align="center">
-
-[![Twitter](https://img.shields.io/badge/Twitter-@MindMosaic-blue)](https://twitter.com)
-[![Discord](https://img.shields.io/badge/Discord-Dreamers-purple)](https://discord.gg)
-[![Email](https://img.shields.io/badge/Email-dream@mindmosaic.eth-gold)](mailto:your-email)
-
-</div>
-
 ---
 
 <div align="center">
